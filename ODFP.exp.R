@@ -1,4 +1,4 @@
-# TODO: Learn the model parameter from the synthetic data 
+# Learn the model parameter from the synthetic data 
 #
 # Author: Jun Yu
 # Version: Jan 18, 2012
@@ -7,7 +7,8 @@
 rm(list=ls())
 
 #setwd("C:/Jun_home/workspace/eBird.ODFP")
-setwd("/Users/yujunnokia/Documents/workspace/eBird.ODFP")
+#setwd("/Users/yujunnokia/Documents/workspace/eBird.ODFP")
+setwd("/Users/yujunnokia/workspace/eBird.ODFP")
 source("ODFP.R")
 source("ODFP.synthData.R")
 
@@ -171,68 +172,68 @@ trTrueOccs <- trData$trueOccs
     cat("MSE is ",MSE,"\n")
 }
 
-###########
-# OD model
-###########
-{
-    source("../eBird.OD/OD.R")
-    params <- RandomRestartEM(trDetHists,trOccCovs,trDetCovs,trVisits,regType,lambdaO,lambdaD,nRandomRestarts)
-    alphaOD <- params$alpha
-    betaOD <- params$beta
-    
-    cat("------------------------------\n")
-    
-    # predict Z on test data
-    teModelOccProb <- array(0,c(nTeSites,1))
-    for (i in 1:nTeSites) {
-        teModelOccProb[i] <- PredictOcc(c(alphaOD,betaOD),teOccCovs[i,],teDetCovs[i,,],teDetHists[i,],teVisits[i]) 
-    } # i
-     predOcc <- sum(round(teModelOccProb) == teTrueOccs) / nTeSites
-    cat("Model occupancy prediction is ",predOcc,"\n")
-    
-    # predict Y on test data
-    teModelDetHists <- array(0,c(nTeSites,nVisits))
-    for (i in 1:nTeSites) {
-        for (t in 1:teVisits[i]) {
-            teModelDetHists[i,t] <- PredictDet(c(alphaOD,betaOD),teOccCovs[i,],teDetCovs[i,t,]) 
-        }
-    }
-    predDet <- sum(sum(round(teModelDetHists) == teDetHists)) / (sum(teVisits))
-    cat("Model detection prediction is ",predDet,"\n")
-}
-
-
-#################################################
-# run logistic regression to predict detection Y
-#################################################
-{
-    trOccDetCovs <- NULL 
-    trDetections <- NULL 
-    for (i in 1:nTrSites) {
-        for (t in 1:trVisits[i]) {
-            trOccDetCovs <- rbind(trOccDetCovs,c(trOccCovs[i,2:(nOccCovs+1)],trDetCovs[i,t,2:(nDetCovs+1)]))
-            trDetections <- rbind(trDetections,trDetHists[i,t])
-        }
-    }
-    
-    # train GLMNET with L2 norm
-    LRM <- glmnet(trOccDetCovs,trDetections,family="binomial",alpha=0)
-    
-    # get occupancy rate
-    teOccDetCovs <- NULL 
-    teDetections <- NULL 
-    for (i in 1:nTeSites) {
-        for (t in 1:teVisits[i]) {
-            teOccDetCovs <- rbind(teOccDetCovs,c(teOccCovs[i,2:(nOccCovs+1)],teDetCovs[i,t,2:(nDetCovs+1)]))
-            teDetections <- rbind(teDetections,teDetHists[i,t])
-        }
-    }
-    
-    # predict
-    predDetHists <- predict(LRM,type="response",newx=teOccDetCovs,s=lambda)
-    predDetHists[predDetHists >= 0.5] <- 1
-    predDetHists[predDetHists < 0.5] <- 0
-    
-    LRMDet <- sum(predDetHists == teDetections) / sum(teVisits)
-    cat("LRM detection rate is ",LRMDet,"\n")
-}
+############
+## OD model
+############
+#{
+#    source("../eBird.OD/OD.R")
+#    params <- RandomRestartEM(trDetHists,trOccCovs,trDetCovs,trVisits,regType,lambdaO,lambdaD,nRandomRestarts)
+#    alphaOD <- params$alpha
+#    betaOD <- params$beta
+#    
+#    cat("------------------------------\n")
+#    
+#    # predict Z on test data
+#    teModelOccProb <- array(0,c(nTeSites,1))
+#    for (i in 1:nTeSites) {
+#        teModelOccProb[i] <- PredictOcc(c(alphaOD,betaOD),teOccCovs[i,],teDetCovs[i,,],teDetHists[i,],teVisits[i]) 
+#    } # i
+#     predOcc <- sum(round(teModelOccProb) == teTrueOccs) / nTeSites
+#    cat("Model occupancy prediction is ",predOcc,"\n")
+#    
+#    # predict Y on test data
+#    teModelDetHists <- array(0,c(nTeSites,nVisits))
+#    for (i in 1:nTeSites) {
+#        for (t in 1:teVisits[i]) {
+#            teModelDetHists[i,t] <- PredictDet(c(alphaOD,betaOD),teOccCovs[i,],teDetCovs[i,t,]) 
+#        }
+#    }
+#    predDet <- sum(sum(round(teModelDetHists) == teDetHists)) / (sum(teVisits))
+#    cat("Model detection prediction is ",predDet,"\n")
+#}
+#
+#
+##################################################
+## run logistic regression to predict detection Y
+##################################################
+#{
+#    trOccDetCovs <- NULL 
+#    trDetections <- NULL 
+#    for (i in 1:nTrSites) {
+#        for (t in 1:trVisits[i]) {
+#            trOccDetCovs <- rbind(trOccDetCovs,c(trOccCovs[i,2:(nOccCovs+1)],trDetCovs[i,t,2:(nDetCovs+1)]))
+#            trDetections <- rbind(trDetections,trDetHists[i,t])
+#        }
+#    }
+#    
+#    # train GLMNET with L2 norm
+#    LRM <- glmnet(trOccDetCovs,trDetections,family="binomial",alpha=0)
+#    
+#    # get occupancy rate
+#    teOccDetCovs <- NULL 
+#    teDetections <- NULL 
+#    for (i in 1:nTeSites) {
+#        for (t in 1:teVisits[i]) {
+#            teOccDetCovs <- rbind(teOccDetCovs,c(teOccCovs[i,2:(nOccCovs+1)],teDetCovs[i,t,2:(nDetCovs+1)]))
+#            teDetections <- rbind(teDetections,teDetHists[i,t])
+#        }
+#    }
+#    
+#    # predict
+#    predDetHists <- predict(LRM,type="response",newx=teOccDetCovs,s=lambda)
+#    predDetHists[predDetHists >= 0.5] <- 1
+#    predDetHists[predDetHists < 0.5] <- 0
+#    
+#    LRMDet <- sum(predDetHists == teDetections) / sum(teVisits)
+#    cat("LRM detection rate is ",LRMDet,"\n")
+#}
